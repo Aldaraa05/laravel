@@ -34,6 +34,9 @@ Route:: group(['prefix' => 'v1', 'namespace' => 'App\Http\Controllers\Api\V1'], 
 
     Route::put('updateBagsh/{id}', 'BagshController@edit');
     Route::put('updateSuragch/{id}', 'SuragchController@edit');
+
+    Route::get('signInSuragch', 'SuragchController@signIn');
+    Route::get('signInBagsh', 'BagshController@signIn');
 });
 
 Route::get('api/v1/angiud/{id}', [AngiController::class, 'show']);

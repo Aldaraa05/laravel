@@ -44,14 +44,12 @@ class SuragchController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreSuragchRequest $request)
-    {
-        //
+    public function signIn(Request $req) {
+        $register = $req->register;
+        $suragch = Suragch::where('register','like', $register) -> first();;
+        return $suragch;
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show($id)
     {
         $suragch = Suragch::find($id);

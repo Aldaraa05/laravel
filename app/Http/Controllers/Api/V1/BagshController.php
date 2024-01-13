@@ -47,11 +47,11 @@ class BagshController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreBagshRequest $request)
-    {
-        //
+    public function signIn(Request $req) {
+        $register = $req->register;
+        $bagsh = Bagsh::where('register','like', $register) -> first();;
+        return $bagsh;
     }
-
     /**
      * Display the specified resource.
      */
