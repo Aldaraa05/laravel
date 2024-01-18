@@ -6,75 +6,85 @@ use App\Models\Bagsh;
 use App\Http\Requests\StoreBagshRequest;
 use App\Http\Requests\UpdateBagshRequest;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\V1\BagshResource;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Http\RedirectResponse;
 
 class BagshController extends Controller
 
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
         return Bagsh::all(); 
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create(Request $req)
     {
         $this->validate($req, [
-            'register' => 'required|unique|max:10|min:10',
+            'register' => 'required|max:10|min:10|unique:bagshes',
             'password' => 'required|min:8|max:15',
+            'angi_id' => 'required|unique:bagshes',
+            'name' => 'required',
         ]);
 
         $bagsh= new Bagsh;
         $bagsh->angi_id=$req->angi_id;
         $bagsh->name=$req->name;
         $bagsh->register=$req->register;
-        $bagsh->password=$req->password;
+        $bagsh->password= Hash::make($req->password);
         $result=$bagsh->save();
-        if($result) {
-            return ['Result'=> 'Data has been saved'];
-        }
-        else {
-            return ['Result'=> 'Operation has been failed'];
-        }
+
+        return response() -> json([
+            'bagshId' => $bagsh->id,
+            'message' => 'Bagsh created succesfully',
+            // 'token' => $bagsh->createToken("API TOKEN")->plainTextToken
+        ], 200);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function signIn(Request $req) {
+
+        $this->validate($req, [
+            'register' => 'required|max:10|min:10',
+            'password' => 'required|min:8|max:15',
+        ]);
+
         $register = $req->register;
-        $bagsh = Bagsh::where('register','like', $register) -> first();;
-        return $bagsh;
+        $password = $req->password;
+        $bagsh = Bagsh::where('register','like', $register) -> first();
+        
+        if(!$bagsh || !Hash::check($password , $bagsh->password )) {
+            return response([
+                'message' => 'password or register is incorrect'
+            ], 401);
+        }
+        else {
+            return response() -> json([
+                $bagsh->angi_id,
+                'message' => 'Bagsh signed in',
+                'token' => $bagsh->createToken("API TOKEN")->plainTextToken
+            ], 200);
+        }
+
     }
-    /**
-     * Display the specified resource.
-     */
+
     public function show($id)
     {
         $bagsh = Bagsh::find($id);
         return $bagsh;
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit($id, Request $req)
     {
         $this->validate($req, [
-            'register' => 'required|unique:bagshes|max:10|min:10',
-            'password' => 'required|min:8|max:15',
+            'register' => 'required|max:10|min:10',
         ]);
         $bagsh = Bagsh::find($id);
         $bagsh->angi_id=$req->angi_id;
         $bagsh->name=$req->name;
         $bagsh->register=$req->register;
-        $bagsh->password=$req->password;
         $result=$bagsh->save();
 
         if($result) {
@@ -85,17 +95,11 @@ class BagshController extends Controller
         }
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(UpdateBagshRequest $request, Bagsh $bagsh)
     {
         //
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy($id)
     {
         $bagsh = Bagsh::find($id);
@@ -106,5 +110,13 @@ class BagshController extends Controller
         else {
             return ['Result'=> 'Operation has been failed'];
         }
+    }
+
+    public function logout(Request $req) {
+
+        auth()->user()->tokens()->delete();
+        return response() -> json([
+            'message' => 'Bagsh logged out',
+        ], 200);       
     }
 }

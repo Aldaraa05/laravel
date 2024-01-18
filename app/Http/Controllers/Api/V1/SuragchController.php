@@ -7,6 +7,9 @@ use App\Http\Requests\StoreSuragchRequest;
 use App\Http\Requests\UpdateSuragchRequest;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Http\Response;
+
 
 class SuragchController extends Controller
 {
@@ -23,15 +26,17 @@ class SuragchController extends Controller
      */
     public function create(Request $req)
     {
+        // return $req;
         $this->validate($req, [
-            'register' => 'required|unique:bagshes|max:10|min:10',
+            'register' => 'required|max:10|min:10|unique:suragches',
             'password' => 'required|min:8|max:15',
         ]);
         $suragch= new Suragch;
         $suragch->angi_id=$req->angi_id;
         $suragch->name=$req->name;
         $suragch->register=$req->register;
-        $suragch->password=$req->password;
+        $suragch->password=bcrypt($req->password);
+        
         $result=$suragch->save();
         if($result) {
             return ['Result'=> 'Data has been saved'];
@@ -62,14 +67,12 @@ class SuragchController extends Controller
     public function edit($id, Request $req)
     {
         $this->validate($req, [
-            'register' => 'required|unique:bagshes|max:10|min:10',
-            'password' => 'required|min:8|max:15',
+            'register' => 'required|max:10|min:10',
         ]);
         $suragch = Suragch::find($id);
         $suragch->angi_id=$req->angi_id;
         $suragch->name=$req->name;
         $suragch->register=$req->register;
-        $suragch->password=$req->password;
         $result=$suragch->save();
 
         if($result) {
